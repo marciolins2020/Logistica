@@ -1,46 +1,628 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Logística Inteligente Amazônica</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            colors: {
-              'brand-primary': '#1e3a8a',      // Azul Amazônia
-              'brand-secondary': '#16a34a',    // Verde Floresta
-              'brand-alert': '#fbbf24',        // Amarelo
-              'brand-critical': '#dc2626',      // Vermelho
-              'brand-success': '#10b981',      // Verde
-            }
-          }
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>LIA — Hi-Tech Amazônia (ZFM)</title>
+  <!-- Mapbox -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
+          colors: {
+            brand: { primary:'#007B7F', accent:'#26BFA3', gold:'#FFD65B', ink:'#022b2e' }
+          },
+          boxShadow: { glass:'0 10px 30px rgba(0,0,0,.15)' }
         }
       }
-    </script>
-  <script type="importmap">
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Libs client-side -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      background-image: radial-gradient(circle at 10% 20%, #26BFA31A, transparent 40%),
+                        radial-gradient(circle at 90% 80%, #007B7F1A, transparent 40%);
+      background-attachment: fixed;
+    }
+    .dark body {
+      background-image: radial-gradient(circle at 10% 20%, #26BFA311, transparent 40%),
+                        radial-gradient(circle at 90% 80%, #007B7F11, transparent 40%);
+    }
+    .glass{
+      backdrop-filter:blur(10px);
+      background:rgba(255,255,255,.6);
+      border: 1px solid rgba(255,255,255,.2);
+    }
+    .dark .glass{
+      background:rgba(17,24,39,.5);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    h2 { text-shadow: 0 0 15px transparent; }
+    .dark h2 {
+      color: #26BFA3;
+      text-shadow: 0 0 15px #26BFA377;
+    }
+    .badge{padding:.2rem .5rem;border-radius:.5rem;font-size:.75rem}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,#26BFA355,transparent)}
+    #file-upload-button {
+      background-color: #26BFA3;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #file-upload-button:hover { background-color: #1a9f85; }
+    input[type="file"] { display: none; }
+  </style>
+<script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "vite": "https://aistudiocdn.com/vite@^7.1.12"
   }
 }
 </script>
 </head>
-  <body class="bg-gray-100">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+<body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans">
+  <!-- Header -->
+  <header class="relative overflow-hidden bg-brand-ink text-white">
+    <div class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <svg width="36" height="36" viewBox="0 0 64 64" class="shrink-0">
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#26BFA3"/><stop offset="1" stop-color="#4ade80"/></linearGradient></defs>
+          <path d="M10 42c10-16 24-26 44-28-4 20-14 34-28 44-8-4-12-8-16-16z" fill="url(#g)"/>
+          <path d="M12 44c8 2 16 2 26-2" stroke="#FFD65B" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white">LIA — Logística Inteligente Amazônica</h1>
+          <p class="text-sm text-emerald-200">Hi-Tech Amazônia para a Indústria da Zona Franca de Manaus</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline badge bg-emerald-100 text-emerald-900">Preview Sandbox</span>
+        <button id="modeBtn" class="px-3 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20">🌙/☀️</button>
+      </div>
+    </div>
+  </header>
+
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+      <!-- KPI Cards -->
+      <section class="grid md:grid-cols-4 gap-4">
+        <div class="glass shadow-glass rounded-2xl p-4">
+          <div class="text-xs text-slate-500 dark:text-slate-300">Cargas em trânsito</div>
+          <div id="kpiTransit" class="text-2xl font-bold mt-1">—</div>
+          <div class="text-xs mt-1 text-emerald-600 dark:text-emerald-300" id="kpiTransitDelta">—</div>
+        </div>
+        <div class="glass shadow-glass rounded-2xl p-4">
+          <div class="text-xs text-slate-500 dark:text-slate-300">Risco de ruptura</div>
+          <div id="kpiRisk" class="text-2xl font-bold mt-1">—</div>
+          <div class="text-xs mt-1 text-amber-600 dark:text-amber-300" id="kpiRiskNote">—</div>
+        </div>
+        <div class="glass shadow-glass rounded-2xl p-4">
+          <div class="text-xs text-slate-500 dark:text-slate-300">Lead time médio (dias)</div>
+          <div id="kpiLead" class="text-2xl font-bold mt-1">—</div>
+          <div class="text-xs mt-1 text-sky-600 dark:text-sky-300" id="kpiLeadNote">—</div>
+        </div>
+        <div class="glass shadow-glass rounded-2xl p-4">
+          <div class="text-xs text-slate-500 dark:text-slate-300">Sustentabilidade (Índice Verde)</div>
+          <div id="kpiGreen" class="text-2xl font-bold mt-1">—</div>
+          <div class="text-xs mt-1 text-lime-600 dark:text-lime-300">Estimado</div>
+        </div>
+      </section>
+
+      <div class="my-6 divider"></div>
+
+      <!-- Upload / Validação / Prévia -->
+      <section class="grid lg:grid-cols-2 gap-6">
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            <span>📥 Importar dados</span>
+            <span class="badge bg-emerald-100 text-emerald-900">XLSX/CSV/JSON</span>
+          </h2>
+          <p class="text-sm text-slate-500 dark:text-slate-300 mb-3">Os dados não saem do seu navegador.</p>
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-3">
+            <div class="flex items-center gap-3">
+               <input id="fileInput" type="file" accept=".xlsx,.csv,.json"/>
+               <label for="fileInput" id="file-upload-button" class="whitespace-nowrap">Escolher arquivo</label>
+               <span id="file-name" class="text-sm text-slate-500">Nenhum arquivo...</span>
+            </div>
+            <button id="btnValidate" class="px-4 py-2 rounded-xl bg-brand-primary text-white disabled:opacity-40" disabled>Validar</button>
+            <button id="btnTemplate" class="px-4 py-2 rounded-xl bg-brand-ink text-white">Baixar template</button>
+          </div>
+          <div id="status" class="text-sm text-slate-600 dark:text-slate-300"></div>
+
+          <!-- Conectores ERP/WMS (simulação) -->
+          <div class="mt-6">
+            <h3 class="text-sm font-semibold mb-2">Conectores ERP/WMS</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+              <button class="connector btn px-3 py-2 rounded-lg bg-brand-ink text-white" data-sys="SAP">SAP</button>
+              <button class="connector btn px-3 py-2 rounded-lg bg-brand-ink text-white" data-sys="TOTVS">TOTVS</button>
+              <button class="connector btn px-3 py-2 rounded-lg bg-brand-ink text-white" data-sys="Senior">Senior</button>
+              <button class="connector btn px-3 py-2 rounded-lg bg-brand-ink text-white" data-sys="Oracle">Oracle</button>
+            </div>
+            <p id="connectorStatus" class="text-xs text-slate-500 mt-2">Clique para simular teste de conexão.</p>
+          </div>
+        </div>
+
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold">👀 Pré-visualização (15 linhas)</h2>
+          <div id="preview" class="mt-3 overflow-auto border border-slate-200 dark:border-slate-700 rounded-xl"></div>
+        </div>
+      </section>
+
+      <!-- Erros -->
+      <section class="glass shadow-glass rounded-2xl p-5 mt-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold">❗Erros de validação</h2>
+          <div class="flex items-center gap-3">
+            <span class="badge bg-amber-100 text-amber-800">Sugestões simuladas</span>
+            <button id="btnExportErrors" class="px-3 py-2 rounded-xl bg-brand-ink text-white disabled:opacity-40" disabled>Exportar erros (CSV)</button>
+          </div>
+        </div>
+        <div id="errorsSummary" class="text-sm text-slate-600 dark:text-slate-300 mt-1">—</div>
+        <div id="errorsTable" class="mt-3 overflow-auto border border-slate-200 dark:border-slate-700 rounded-xl"></div>
+      </section>
+      
+      <!-- Mapa -->
+      <section id="map-section" class="glass shadow-glass rounded-2xl p-5 mt-6">
+        <div class="flex items-center justify-between mb-3">
+           <h2 class="text-lg font-semibold">🗺️ Mapa de Risco Operacional</h2>
+           <div class="flex items-center gap-4 text-xs">
+              <span class="flex items-center gap-1.5"><span class="block w-3 h-3 rounded-full bg-red-500"></span>Alto Risco</span>
+              <span class="flex items-center gap-1.5"><span class="block w-3 h-3 rounded-full bg-amber-400"></span>Risco Moderado</span>
+              <span class="flex items-center gap-1.5"><span class="block w-3 h-3 rounded-full bg-emerald-500"></span>Rota Segura</span>
+              <span class="flex items-center gap-1.5"><span class="block w-3 h-1 border-b-2 border-dashed border-cyan-400"></span>Rota Fluvial</span>
+           </div>
+        </div>
+        <div id="map" class="w-full h-[400px] rounded-xl border border-slate-200 dark:border-slate-700"></div>
+      </section>
+
+
+      <!-- Sustentabilidade -->
+      <section class="glass shadow-glass rounded-2xl p-5 mt-6">
+        <h2 class="text-lg font-semibold">🌿 Sustentabilidade (Índice Verde)</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-300 mb-3">Simule impacto de eficiência energética e logística verde.</p>
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="block">Eficiência energética (kWh/uni)</label>
+            <input id="sliderEnergy" type="range" min="50" max="200" value="120" class="w-full">
+          </div>
+          <div>
+            <label class="block">Emissões CO₂ (kg/ton)</label>
+            <input id="sliderCO2" type="range" min="20" max="120" value="70" class="w-full">
+          </div>
+          <div>
+            <label class="block">Hidrovias na rota (%)</label>
+            <input id="sliderHydro" type="range" min="0" max="100" value="60" class="w-full">
+          </div>
+        </div>
+        <div class="mt-3 text-sm">
+          <div>Índice Verde atual: <b id="greenNow">—</b></div>
+          <div>Meta: <b>≥ 78 pts</b></div>
+        </div>
+        <button id="btnRecalcGreen" class="mt-3 px-4 py-2 rounded-xl bg-brand-accent text-white">Recalcular Índice</button>
+      </section>
+
+      <!-- BI Exportações ZFM + SLA/Modal -->
+      <section class="grid lg:grid-cols-2 gap-6 mt-6">
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold">📦 Exportações — Zona Franca (simulação)</h2>
+          <div class="w-full max-w-sm mx-auto">
+            <canvas id="chartExport"></canvas>
+          </div>
+        </div>
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold">⛴️ SLA por Modal (dias)</h2>
+          <canvas id="chartSLA"></canvas>
+        </div>
+      </section>
+
+      <!-- Assistente LIA (simulado) + Auditoria -->
+      <section class="grid lg:grid-cols-2 gap-6 mt-6">
+        <!-- Chat -->
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold">🤖 Assistente LIA (simulado)</h2>
+          <div id="chatBox" class="h-56 overflow-auto border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm bg-white/50 dark:bg-slate-800/40"></div>
+          <div class="mt-3 flex gap-2">
+            <input id="chatInput" class="flex-1 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700" placeholder="Pergunte algo: atrasos, estoque, rotas…">
+            <button id="chatSend" class="px-4 py-2 rounded-xl bg-brand-ink text-white">Enviar</button>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">Fora do sandbox, conecte ao Gemini/RedData IA.</p>
+        </div>
+
+        <!-- Auditoria -->
+        <div class="glass shadow-glass rounded-2xl p-5">
+          <h2 class="text-lg font-semibold">🛡️ Governança & Auditoria</h2>
+          <div id="auditList" class="h-56 overflow-auto border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm bg-white/50 dark:bg-slate-800/40"></div>
+          <div class="mt-3 flex gap-2">
+            <button id="btnExportAudit" class="px-4 py-2 rounded-xl bg-brand-ink text-white">Exportar log (CSV)</button>
+            <button id="btnClearAudit" class="px-4 py-2 rounded-xl bg-amber-600 text-white">Limpar log</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="text-xs text-slate-500 dark:text-slate-400 mt-8 mb-6 text-center">
+        Feito para as Indústrias da Zona Franca de Manaus — estética Hi-Tech + identidade Amazônia 🌿
+      </footer>
+    </main>
+
+  <script>
+    // ===== Estado & Util =====
+    const state = { rawRows: [], validRows: [], errors: [], audit: [] };
+    const $ = id => document.getElementById(id);
+    const now = () => new Date().toLocaleString();
+    const esc = v => String(v ?? "").replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+
+    function addAudit(action, detail=""){
+      state.audit.unshift({ ts: now(), action, detail });
+      renderAudit();
+    }
+    function renderAudit(){
+      const box = $('auditList');
+      if(!state.audit.length){ box.innerHTML = `<div class="text-slate-500">Sem eventos registrados.</div>`; return; }
+      box.innerHTML = state.audit.map(a =>
+        `<div class="mb-2"><b>${esc(a.ts)}</b> — ${esc(a.action)} <span class="text-slate-500">${esc(a.detail)}</span></div>`
+      ).join('');
+    }
+    function csvOf(rows){
+      if(!rows.length) return "";
+      const cols = Object.keys(rows[0]);
+      const E=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+      return cols.join(",") + "\n" + rows.map(r => cols.map(c => E(r[c])).join(",")).join("\n");
+    }
+
+    // ===== Tema =====
+    (function initTheme(){
+      const m = localStorage.getItem('lia-mode') || 'dark';
+      document.documentElement.classList.toggle('dark', m==='dark');
+      $('modeBtn').addEventListener('click', ()=>{
+        const n = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', n==='dark');
+        localStorage.setItem('lia-mode', n);
+        // Recarregar mapa no modo escuro pode precisar de re-renderização se o estilo mudar
+        if (window.map) {
+          setTimeout(() => window.map.resize(), 0);
+        }
+      });
+    })();
+    
+    // ===== Mapbox =====
+    function initializeMap() {
+        mapboxgl.accessToken = 'pk.eyJ1IjoicmVkbWF4eGJyIiwiYSI6ImNtZ2ptZjZuNjBsc2wyd29xeXE0eWx3d3AifQ.ykVuXqbMRxyDtdJ5tkfv2g';
+        
+        const geojson = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'geometry': { 'type': 'LineString', 'coordinates': [ [-65.0, -3.5], [-62.5, -3.2], [-60.0, -3.1] ] },
+                    'properties': { 'type': 'route' }
+                },
+                { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-65.0, -3.5] }, 'properties': { 'type': 'risk', 'level': 'safe', 'label': 'Rota Segura' } },
+                { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-62.5, -3.2] }, 'properties': { 'type': 'risk', 'level': 'high', 'label': 'Nível do Rio Baixo' } },
+                { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-61.0, -3.15] }, 'properties': { 'type': 'risk', 'level': 'moderate', 'label': 'Congestionamento' } },
+                { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-60.0, -3.1] }, 'properties': { 'type': 'risk', 'level': 'destination', 'label': 'Manaus' } }
+            ]
+        };
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v11',
+            center: [-62.5, -3.3],
+            zoom: 5.5
+        });
+
+        window.map = map;
+
+        map.on('load', () => {
+            map.addSource('route', { 'type': 'geojson', 'data': geojson });
+
+            map.addLayer({
+                'id': 'route-line',
+                'type': 'line',
+                'source': 'route',
+                'layout': { 'line-join': 'round', 'line-cap': 'round' },
+                'paint': { 'line-color': '#06b6d4', 'line-width': 2, 'line-dasharray': [2, 2] },
+                'filter': ['==', ['get', 'type'], 'route']
+            });
+
+            map.addLayer({
+                'id': 'risk-points',
+                'type': 'circle',
+                'source': 'route',
+                'paint': {
+                    'circle-radius': 8,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-color': [
+                        'match', ['get', 'level'],
+                        'high', '#ef4444',
+                        'moderate', '#f59e0b',
+                        'safe', '#10b981',
+                        'destination', '#06b6d4',
+                        '#ccc'
+                    ]
+                },
+                'filter': ['==', ['get', 'type'], 'risk']
+            });
+
+            const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
+
+            map.on('mouseenter', 'risk-points', (e) => {
+                map.getCanvas().style.cursor = 'pointer';
+                const coordinates = e.features[0].geometry.coordinates.slice();
+                const label = e.features[0].properties.label;
+                popup.setLngLat(coordinates).setHTML(label).addTo(map);
+            });
+
+            map.on('mouseleave', 'risk-points', () => {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+            });
+        });
+    }
+
+
+    // ===== Parsing =====
+    async function parseFile(file){
+      const name = file.name.toLowerCase();
+      const buf = await file.arrayBuffer();
+      if(name.endsWith('.xlsx')){
+        const wb = XLSX.read(buf,{type:'array'}), ws = wb.Sheets[wb.SheetNames[0]];
+        return XLSX.utils.sheet_to_json(ws,{defval:''});
+      }
+      if(name.endsWith('.csv')){
+        return new Promise(res => Papa.parse(new Blob([buf]),{header:true,skipEmptyLines:true,complete:o=>res(o.data||[])}));
+      }
+      if(name.endsWith('.json')){
+        try { const j = JSON.parse(new TextDecoder().decode(buf)); return Array.isArray(j)?j:(Array.isArray(j.rows)?j.rows:[]);} catch { return []; }
+      }
+      return [];
+    }
+
+    // ===== Validação síncrona =====
+    function validateData(rows){
+      const valid=[], errors=[];
+      for(let i=0;i<rows.length;i++){
+        const r = rows[i], bad=[];
+        const S=k=>String(r[k]??'').trim();
+        if(!S('razao_social')) bad.push({row:i+1, field:'razao_social', message:'Obrigatório.'});
+        if(!S('produto'))      bad.push({row:i+1, field:'produto',      message:'Obrigatório.'});
+        if(S('email') && !/\S+@\S+\.\S+/.test(S('email'))) bad.push({row:i+1, field:'email', message:'E-mail inválido.'});
+        if(S('cnpj') && !/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(S('cnpj'))) bad.push({row:i+1, field:'cnpj', message:'CNPJ inválido (00.000.000/0000-00).'});
+        if(r.quantidade!==undefined && r.quantidade!=="" && Number(r.quantidade)<0) bad.push({row:i+1, field:'quantidade', message:'Não pode ser negativo.'});
+        if(r.sla_previsto_dias!==undefined && r.sla_previsto_dias!=="" && Number(r.sla_previsto_dias)<=0) bad.push({row:i+1, field:'sla_previsto_dias', message:'Deve ser > 0.'});
+        if(bad.length) errors.push(...bad); else valid.push(r);
+      }
+      return {valid, errors};
+    }
+
+    // ===== UI: Prévia & Erros =====
+    function renderPreview(rows){
+      const box = $('preview');
+      if(!rows.length){ box.innerHTML = `<div class="p-3 text-sm text-slate-500">Sem dados.</div>`; return; }
+      const sample = rows.slice(0,15), cols = Object.keys(sample[0]);
+      const th = cols.map(c=>`<th class="px-3 py-2 text-left bg-slate-50 dark:bg-slate-800">${esc(c)}</th>`).join('');
+      const trs = sample.map(r=>`<tr>${cols.map(c=>`<td class="px-3 py-2 border-t border-slate-200 dark:border-slate-700">${esc(r[c])}</td>`).join('')}</tr>`).join('');
+      box.innerHTML = `<table class="min-w-full text-sm"><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+    }
+    function localSuggestion(e){
+      switch(e.field){
+        case 'razao_social': return 'Informe a razão social completa.';
+        case 'produto': return 'Preencha código/nome do produto.';
+        case 'email': return 'Use formato nome@empresa.com.';
+        case 'cnpj': return 'Formato 00.000.000/0000-00.';
+        case 'quantidade': return 'Use número ≥ 0.';
+        case 'sla_previsto_dias': return 'Defina um valor > 0.';
+        default: return 'Revise o valor informado.';
+      }
+    }
+    function renderErrors(errs){
+      $('errorsSummary').textContent = errs.length ? `${errs.length} erro(s) encontrado(s).` : 'Sem erros. Tudo pronto!';
+      const table = $('errorsTable');
+      if(!errs.length){ table.innerHTML = `<div class="p-3 text-emerald-600">✅ Nenhum erro.</div>`; $('btnExportErrors').disabled = true; return; }
+      const head=['linha','campo','mensagem','sugestão'];
+      const th = head.map(h=>`<th class="px-3 py-2 text-left bg-slate-50 dark:bg-slate-800">${h}</th>`).join('');
+      const trs = errs.map((e,i)=>`
+        <tr>
+          <td class="px-3 py-2 border-t">${e.row}</td>
+          <td class="px-3 py-2 border-t">${esc(e.field)}</td>
+          <td class="px-3 py-2 border-t text-red-600">${esc(e.message)}</td>
+          <td class="px-3 py-2 border-t text-slate-500" id="sug_${i}">Gerando…</td>
+        </tr>`).join('');
+      table.innerHTML = `<table class="min-w-full text-sm"><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+      $('btnExportErrors').disabled = false;
+      errs.forEach((e,i)=> setTimeout(()=>{ const el=$('sug_'+i); if(el) el.textContent = localSuggestion(e); }, 250 + (i%5)*160));
+    }
+
+    // ===== KPIs & Gráficos =====
+    let chartSLA=null, chartExport=null;
+    function calcKPIs(rows){
+      const transit = rows.length;
+      const riskPct = Math.round((rows.filter(r => Number(r.estoque_atual||0) < Number(r.estoque_minimo||0)).length / Math.max(1,rows.length)) * 100);
+      const lead = Math.round(rows.reduce((a,r)=>a + Number(r.sla_previsto_dias||0),0) / Math.max(1,rows.length));
+      const green = 72 + Math.round(Math.random()*8);
+
+      $('kpiTransit').textContent = transit;
+      $('kpiTransitDelta').textContent = 'Simulação: +4% semana';
+      $('kpiRisk').textContent = isFinite(riskPct) ? riskPct + '%' : '—';
+      $('kpiRiskNote').textContent = riskPct>30 ? 'Atenção aos itens A' : 'Risco controlado';
+      $('kpiLead').textContent = isFinite(lead) ? lead : '—';
+      $('kpiLeadNote').textContent = 'Meta: ≤ 12 dias';
+      $('kpiGreen').textContent = green + ' pts';
+    }
+    function drawCharts(rows){
+      const ctxSLA   = document.getElementById('chartSLA');
+      const ctxExp   = document.getElementById('chartExport');
+
+      function avg(a){ return a.length? a.reduce((x,y)=>x+y,0)/a.length : 0; }
+      const byModal = {hidrovia:[],rodovia:[],aereo:[]};
+      rows.forEach(r => { const m=(r.modal||'').toString().toLowerCase(); const sla=Number(r.sla_previsto_dias||0); if(byModal[m]) byModal[m].push(sla); });
+
+      const expLabels = ['EUA','UE','Ásia','LatAm','Outros'];
+      const expVals   = [32,28,18,15,7].map(v=>v + Math.round(Math.random()*3-1)); // simulado
+
+      chartSLA   && chartSLA.destroy();
+      chartExport&& chartExport.destroy();
+
+      chartSLA = new Chart(ctxSLA, { type:'line',
+        data:{ labels:['hidrovia','rodovia','aereo'], datasets:[{
+          label:'SLA (dias)',
+          data:[avg(byModal.hidrovia),avg(byModal.rodovia),avg(byModal.aereo)],
+          borderColor: '#26BFA3',
+          backgroundColor: '#26BFA3',
+          fill: true
+        }] },
+        options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+      });
+      chartExport = new Chart(ctxExp, { type:'doughnut',
+        data:{ labels:expLabels, datasets:[{
+          label:'Participação Exportações ZFM (%)',
+          data:expVals,
+          backgroundColor:['#007B7F','#26BFA3','#FFD65B','#0B0C10','#6b7280']
+        }] },
+        options:{ plugins:{legend:{position:'bottom'}} }
+      });
+    }
+
+    // ===== Sustentabilidade =====
+    function recomputeGreen(){
+      const kwh = Number($('sliderEnergy').value);
+      const co2 = Number($('sliderCO2').value);
+      const hyd = Number($('sliderHydro').value);
+      let idx = 50 + (hyd*0.2) + Math.max(0, (200-kwh)*0.1) + Math.max(0,(120-co2)*0.1);
+      idx = Math.round(Math.min(100, Math.max(0, idx)));
+      $('greenNow').textContent = idx + ' pts';
+      $('kpiGreen').textContent = idx + ' pts';
+      addAudit('Recalcular Índice Verde', `kWh=${kwh}, CO₂=${co2}, hidro=${hyd}% -> ${idx}pts`);
+    }
+
+    // ===== Assistente LIA (simulado) =====
+    function chatAppend(role, text){
+      const box = $('chatBox');
+      const bubble = `<div class="mb-2 ${role==='user'?'text-right':''}">
+        <div class="inline-block px-3 py-2 rounded-xl ${role==='user'?'bg-brand-primary text-white':'bg-white/70 dark:bg-slate-800/60'}">${esc(text)}</div>
+      </div>`;
+      box.insertAdjacentHTML('beforeend', bubble);
+      box.scrollTop = box.scrollHeight;
+    }
+    function chatReply(q){
+      const t = q.toLowerCase();
+      if(t.includes('atras') || t.includes('sla')) return 'Os maiores atrasos estão no modal rodoviário. Reforce rotas hidroviárias e revise SLAs de fornecedores.';
+      if(t.includes('estoque') || t.includes('ruptura')) return 'Risco de ruptura concentrado em itens A com estoque abaixo do mínimo. Sugerir reposição em 3 dias.';
+      if(t.includes('rota') || t.includes('mapa')) return 'Rotas com melhor performance combinam hidrovia (60%+) e janela de embarque matinal.';
+      if(t.includes('exporta')) return 'Destinos mais fortes: EUA e UE. Crescimento marginal na Ásia (+2pp).';
+      return 'Posso ajudar com atrasos, estoque, rotas, exportações e sustentabilidade. Pergunte algo específico. 😊';
+    }
+
+    // ===== Template 10 abas =====
+    function downloadTemplate(){
+      const tabs=["01_Empresa","02_Sistemas","03_Rotas_Fornecedores","04_Estoques_Politicas",
+        "05_KPIs_Atuais","06_Metas","07_Credenciais_Acessos","08_Alertas_Thresholds",
+        "09_Integracoes_Jobs","10_Termos_Compliance"];
+      const headers={
+        "01_Empresa":["razao_social","cnpj","segmento","email","produto","quantidade"],
+        "02_Sistemas":["erp","wms","tms","existe_api","existe_webhook"],
+        "03_Rotas_Fornecedores":["produto","fornecedor","origem","destino","modal","sla_previsto_dias","prioridade"],
+        "04_Estoques_Politicas":["produto","estoque_minimo","estoque_maximo","estoque_atual","politica_reposicao","leadtime_medio_dias"],
+        "05_KPIs_Atuais":["kpi","valor_atual","periodo_referencia"],
+        "06_Metas":["meta","valor_desejado","prazo_meses"],
+        "07_Credenciais_Acessos":["fonte_dados","tipo_credencial","endpoint_ou_url","usuario","chave_ou_token"],
+        "08_Alertas_Thresholds":["tipo_alerta","severidade","threshold","canal","destinatarios"],
+        "09_Integracoes_Jobs":["tipo","nome","url_ou_funcao","frequencia","ativo"],
+        "10_Termos_Compliance":["lgpd_aceite","retencao_logs_dias","escopo_dados_autorizados","contato_dpo"]
+      };
+      const wb = XLSX.utils.book_new();
+      tabs.forEach(t=> XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers[t]||['coluna1','coluna2']]), t));
+      XLSX.writeFile(wb, "LIA_Onboarding_Template.xlsx");
+      addAudit('Baixar template', '10 abas');
+    }
+
+    // ===== Eventos UI =====
+    $('btnTemplate').addEventListener('click', downloadTemplate);
+
+    $('fileInput').addEventListener('change', async (ev)=>{
+      const file = ev.target.files?.[0];
+      $('status').textContent='';
+      $('btnValidate').disabled=true; $('btnExportErrors').disabled=true;
+      $('preview').innerHTML=''; $('errorsTable').innerHTML=''; $('errorsSummary').textContent='—';
+      if(!file){ $('file-name').textContent='Nenhum arquivo...'; return; }
+      $('file-name').textContent = file.name;
+      $('status').textContent='Lendo arquivo…';
+      const rows=await parseFile(file); state.rawRows=rows; $('status').textContent='';
+      if(!rows.length){ $('preview').innerHTML=`<div class="p-3 text-sm text-red-600">Não foi possível ler dados.</div>`; return; }
+      renderPreview(rows); $('btnValidate').disabled=false; addAudit('Upload concluído', file.name);
+    });
+
+    $('btnValidate').addEventListener('click', ()=>{
+      $('status').textContent='Validando…';
+      const {valid,errors}=validateData(state.rawRows);
+      state.validRows=valid; state.errors=errors;
+      renderPreview(valid.length?valid:state.rawRows);
+      renderErrors(errors);
+      calcKPIs(valid.length?valid:state.rawRows);
+      drawCharts(valid.length?valid:state.rawRows);
+      $('status').textContent= errors.length? 'Validação concluída (corrija os erros).' : 'Validação concluída.';
+      addAudit('Validação', `${valid.length} ok / ${errors.length} erros`);
+    });
+
+    $('btnExportErrors').addEventListener('click', ()=>{
+      if(!state.errors.length) return;
+      const csv = csvOf(state.errors.map(e=>({linha:e.row,campo:e.field,mensagem:e.message})));
+      const blob=new Blob([csv],{type:'text/csv;charset=-8'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='erros_validacao.csv'; a.click(); URL.revokeObjectURL(a.href);
+      addAudit('Exportar erros', `${state.errors.length} itens`);
+    });
+
+    // Conectores simulados
+    document.querySelectorAll('.connector').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const ok = Math.random()>0.25;
+        $('connectorStatus').textContent = ok
+          ? `✅ Conector ${btn.dataset.sys}: autenticação OK`
+          : `⚠️ Conector ${btn.dataset.sys}: credenciais ausentes (simulação)`;
+        addAudit('Teste conector', `${btn.dataset.sys} -> ${ok?'OK':'Falha'}`);
+      });
+    });
+
+    // Chat simulado
+    $('chatSend').addEventListener('click', ()=>{
+      const q = $('chatInput').value.trim(); if(!q) return;
+      $('chatInput').value=''; chatAppend('user', q);
+      setTimeout(()=>{ const a = chatReply(q); chatAppend('assistant', a); addAudit('Chat LIA', q); }, 200);
+    });
+
+    // Auditoria
+    $('btnExportAudit').addEventListener('click', ()=>{
+      if(!state.audit.length) return;
+      const csv = csvOf(state.audit);
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lia_auditoria.csv'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    $('btnClearAudit').addEventListener('click', ()=>{ state.audit=[]; renderAudit(); });
+
+    // Sustentabilidade
+    $('btnRecalcGreen').addEventListener('click', recomputeGreen);
+
+    // Inicializações
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeMap, 100); // Garante que o container do mapa tenha sido renderizado
+        recomputeGreen();
+        renderAudit();
+    });
+
+  </script>
+</body>
 </html>
