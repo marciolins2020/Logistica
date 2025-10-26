@@ -1,0 +1,5 @@
+{
+  "name": "Logística Inteligente Amazônica",
+  "description": "Plataforma Preditiva com IA para Otimização da Cadeia de Suprimentos da ZFM. Este dashboard exibe KPIs, um mapa de risco e as próximas chegadas de cargas.",
+  "requestFramePermissions": []
+}
